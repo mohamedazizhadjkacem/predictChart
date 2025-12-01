@@ -1,0 +1,41 @@
+# Ansible Inventory for Staging Environment
+
+[staging]
+staging-01 ansible_host=10.0.3.10 ansible_user=deploy
+
+[staging:vars]
+# Docker registry configuration
+docker_registry=your-registry.com
+docker_registry_username=deploy
+docker_registry_password=your-password
+
+# Application configuration
+app_domain=staging.candlestickpredictor.com
+app_env=staging
+debug=true
+
+# Database configuration
+db_host=10.0.3.20
+db_name=candlestick_staging
+db_user=staging_user
+db_password=staging_password
+
+# SSL Configuration
+ssl_enabled=false
+
+# Monitoring
+monitoring_enabled=true
+grafana_admin_password=staging_grafana_pass
+prometheus_retention=7d
+
+# Notification
+notification_email=staging@candlestickpredictor.com
+
+# Security
+allowed_hosts=["staging.candlestickpredictor.com"]
+secret_key=staging-secret-key
+
+# Performance tuning
+max_workers=2
+timeout=300
+memory_limit=1g

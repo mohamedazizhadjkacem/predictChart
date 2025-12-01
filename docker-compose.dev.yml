@@ -1,0 +1,74 @@
+# Development docker-compose with live reload
+version: '3.8'
+
+services:
+  # Frontend React Development
+  frontend-dev:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: candlestick-frontend-dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-dev
+    networks:
+      - candlestick-dev-network
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+  # Backend Development
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: candlestick-backend-dev
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ai-dev
+    networks:
+      - candlestick-dev-network
+    environment:
+      - PYTHONPATH=/app
+      - AI_SERVICE_URL=http://ai-dev:8001
+      - RELOAD=true
+    volumes:
+      - ./backend:/app
+      - backend_uploads_dev:/app/uploads
+    restart: unless-stopped
+
+  # AI Development
+  ai-dev:
+    build:
+      context: ./ai
+      dockerfile: Dockerfile.dev
+    container_name: candlestick-ai-dev
+    ports:
+      - "8001:8001"
+    networks:
+      - candlestick-dev-network
+    environment:
+      - PYTHONPATH=/app
+      - MODEL_PATH=/app/models/candlestick_predictor_model.pth
+      - RELOAD=true
+    volumes:
+      - ./ai:/app
+      - ./candlestick_predictor_model.pth:/app/models/candlestick_predictor_model.pth:ro
+    restart: unless-stopped
+
+networks:
+  candlestick-dev-network:
+    driver: bridge
+
+volumes:
+  backend_uploads_dev:
+    driver: local

@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # Frontend React Application
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: candlestick-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - candlestick-network
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+
+  # Backend FastAPI Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: candlestick-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ai
+    networks:
+      - candlestick-network
+    environment:
+      - PYTHONPATH=/app
+      - AI_SERVICE_URL=http://ai:8001
+    volumes:
+      - backend_uploads:/app/uploads
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+
+  # AI Model Service
+  ai:
+    build:
+      context: ./ai
+      dockerfile: Dockerfile
+    container_name: candlestick-ai
+    ports:
+      - "8001:8001"
+    networks:
+      - candlestick-network
+    environment:
+      - PYTHONPATH=/app
+      - MODEL_PATH=/app/models/candlestick_predictor_model.pth
+    volumes:
+      - ./candlestick_predictor_model.pth:/app/models/candlestick_predictor_model.pth:ro
+      - ai_models:/app/models
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: candlestick-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - candlestick-network
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: candlestick-prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - candlestick-network
+    volumes:
+      - ./devops/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: candlestick-grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - candlestick-network
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+networks:
+  candlestick-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  backend_uploads:
+    driver: local
+  ai_models:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

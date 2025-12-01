@@ -1,0 +1,45 @@
+# Ansible Inventory for Production Environment
+
+[production]
+prod-web-01 ansible_host=10.0.1.10 ansible_user=deploy
+prod-web-02 ansible_host=10.0.1.11 ansible_user=deploy
+prod-web-03 ansible_host=10.0.1.12 ansible_user=deploy
+
+[production:vars]
+# Docker registry configuration
+docker_registry=your-registry.com
+docker_registry_username=deploy
+docker_registry_password=your-password
+
+# Application configuration
+app_domain=candlestickpredictor.com
+app_env=production
+debug=false
+
+# Database configuration (if needed)
+db_host=10.0.2.10
+db_name=candlestick_db
+db_user=app_user
+db_password=secure_password
+
+# SSL Configuration
+ssl_enabled=true
+ssl_cert_path=/etc/ssl/certs/candlestickpredictor.com.crt
+ssl_key_path=/etc/ssl/private/candlestickpredictor.com.key
+
+# Monitoring
+monitoring_enabled=true
+grafana_admin_password=secure_grafana_password
+prometheus_retention=30d
+
+# Notification
+notification_email=admin@candlestickpredictor.com
+
+# Security
+allowed_hosts=["candlestickpredictor.com", "www.candlestickpredictor.com"]
+secret_key=your-super-secret-key
+
+# Performance tuning
+max_workers=4
+timeout=300
+memory_limit=2g

@@ -1,5 +1,7 @@
-from PIL import Image, ImageDraw
 from typing import List
+
+from PIL import Image, ImageDraw
+
 
 def numeric_to_image(numeric: List[List[float]], width: int = 342, height: int = 817) -> Image.Image:
     """

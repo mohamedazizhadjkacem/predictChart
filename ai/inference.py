@@ -8,6 +8,7 @@ from model import CandlestickLSTM, create_model
 
 logger = logging.getLogger(__name__)
 
+
 class ModelInference:
     """
     Handles model loading and inference for candlestick prediction

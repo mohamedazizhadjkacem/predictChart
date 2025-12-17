@@ -5,6 +5,7 @@ import uvicorn
 import httpx
 import json
 import matplotlib.pyplot as plt
+
 import matplotlib.patches as patches
 import io
 import numpy as np

@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
+
 from typing import List
 
 def image_to_numeric(img) -> List[List[float]]:
+    
     """
     Convert a candlestick chart image into OHLC numeric data using HSV color detection
     This matches the exact extraction logic from the Colab training

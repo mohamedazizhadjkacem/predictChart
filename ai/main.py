@@ -11,6 +11,7 @@ import os
 from model import CandlestickLSTM
 from inference import ModelInference
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+
 import uvicorn
 import numpy as np
 import cv2
@@ -11,6 +12,7 @@ from typing import List
 import json
 import logging
 from pydantic import BaseModel
+
 
 from image_to_numeric import image_to_numeric
 from numeric_to_image import numeric_to_image

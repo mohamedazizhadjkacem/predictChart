@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class CandlestickPredictor(nn.Module):
     """
     Exact model architecture from Colab notebook

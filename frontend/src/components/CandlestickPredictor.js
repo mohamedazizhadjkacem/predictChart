@@ -183,7 +183,7 @@ const CandlestickPredictor = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        responseType: 'blob', // Important for image response
+        responseType: 'blob', // Expecting image response
       });
 
       updateLastStep('completed');
@@ -196,7 +196,8 @@ const CandlestickPredictor = () => {
       setPredictionResult({
         imageUrl: resultImageUrl,
         timestamp: new Date(),
-        originalFile: uploadedFile.name
+        originalFile: uploadedFile.name,
+        fullPipeline: true
       });
 
       toast.success('Prediction completed successfully!');

@@ -40,7 +40,7 @@ async def startup_event():
         if not os.path.exists(model_path):
             logger.warning("Model file not found. Creating a new model for demonstration.")
             # Create and save a dummy model for testing
-            model = CandlestickLSTM(input_size=4, hidden_size=64, num_layers=2, output_size=4, sequence_length=50)
+            model = CandlestickLSTM(input_size=4, hidden_size=128, num_layers=2, output_size=4, sequence_length=50)
             torch.save(model.state_dict(), model_path)
         
         model_inference = ModelInference(model_path)
@@ -48,8 +48,17 @@ async def startup_event():
         
     except Exception as e:
         logger.error(f"Failed to load model: {str(e)}")
-        # For demo purposes, continue without model
-        model_inference = None
+        # Create model anyway for demo purposes
+        logger.info("Creating fallback model...")
+        try:
+            model_path = "./candlestick_predictor_model.pth"
+            model = CandlestickLSTM(input_size=4, hidden_size=128, num_layers=2, output_size=4, sequence_length=50)
+            torch.save(model.state_dict(), model_path)
+            model_inference = ModelInference(model_path)
+            logger.info("Fallback model created successfully")
+        except Exception as fallback_error:
+            logger.error(f"Failed to create fallback model: {str(fallback_error)}")
+            model_inference = None
 
 @app.get("/")
 async def root():

@@ -108,6 +108,10 @@ const PredictionResult = ({ result }) => {
   const formatTimestamp = (timestamp) => {
     return new Date(timestamp).toLocaleString();
   };
+  
+  // Check if we have image data or JSON data
+  const hasImageData = result.imageUrl;
+  const hasJsonData = result.originalData && result.predictions;
 
   const downloadImage = () => {
     const link = document.createElement('a');
@@ -119,28 +123,55 @@ const PredictionResult = ({ result }) => {
   };
 
   const formatCandleData = (data) => {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return 'No data available';
+    }
     return data.map((candle, index) => 
-      `${index + 1}: [O: ${candle[0].toFixed(4)}, H: ${candle[1].toFixed(4)}, L: ${candle[2].toFixed(4)}, C: ${candle[3].toFixed(4)}]`
+      `${index + 1}: [O: ${candle[0]?.toFixed(4) || 'N/A'}, H: ${candle[1]?.toFixed(4) || 'N/A'}, L: ${candle[2]?.toFixed(4) || 'N/A'}, C: ${candle[3]?.toFixed(4) || 'N/A'}]`
     ).join('\n');
   };
 
   return (
     <ResultContainer>
       <div>
-        <h3>🎯 Combined Result: Original + Predicted Chart</h3>
-        <p>
-          The image below shows your original candlestick chart (left) combined with 
-          the AI-predicted future candlesticks (right).
-        </p>
+        <h3>🎯 Prediction Result: Original + Future Candlesticks</h3>
+        {hasImageData && (
+          <p>
+            The image below shows your original candlestick chart (left) combined with 
+            the AI-predicted future candlesticks (right).
+          </p>
+        )}
+        {hasJsonData && (
+          <p>
+            The AI model has analyzed your candlestick data and generated predictions. 
+            View the detailed results below.
+          </p>
+        )}
       </div>
       
-      <ResultImage 
-        src={result.imageUrl} 
-        alt="Prediction result: Original + Future candlesticks"
-        onClick={downloadImage}
-        style={{ cursor: 'pointer' }}
-        title="Click to download image"
-      />
+      {hasImageData && (
+        <ResultImage 
+          src={result.imageUrl} 
+          alt="Prediction result: Original + Future candlesticks"
+          onClick={downloadImage}
+          style={{ cursor: 'pointer' }}
+          title="Click to download image"
+        />
+      )}
+      
+      {hasJsonData && !hasImageData && (
+        <div style={{ 
+          background: '#f8f9fa', 
+          border: '2px dashed #4A90E2', 
+          borderRadius: '10px', 
+          padding: '30px', 
+          margin: '20px 0',
+          textAlign: 'center'
+        }}>
+          <h4 style={{ color: '#4A90E2', margin: '0 0 10px 0' }}>📊 Prediction Data Generated</h4>
+          <p style={{ color: '#666', margin: '0' }}>AI analysis complete! View the detailed results below.</p>
+        </div>
+      )}
       
       <ResultInfo>
         <InfoGrid>
@@ -168,27 +199,58 @@ const PredictionResult = ({ result }) => {
             </InfoCard>
           )}
           
-          {result.prediction && (
+          {(result.prediction || result.predictions) && (
             <InfoCard>
               <InfoTitle>🔮 Predicted Candles</InfoTitle>
-              <InfoValue>{result.prediction.length} future candlesticks</InfoValue>
+              <InfoValue>{(result.prediction || result.predictions)?.length || 0} future candlesticks</InfoValue>
+            </InfoCard>
+          )}
+          
+          {result.aiStatus && (
+            <InfoCard>
+              <InfoTitle>🤖 AI Status</InfoTitle>
+              <InfoValue style={{ color: result.aiStatus === 'success' ? '#28a745' : '#dc3545' }}>
+                {result.aiStatus}
+              </InfoValue>
+            </InfoCard>
+          )}
+          
+          {result.originalData && (
+            <InfoCard>
+              <InfoTitle>📈 Original Data</InfoTitle>
+              <InfoValue>{result.originalData.length} candlesticks analyzed</InfoValue>
             </InfoCard>
           )}
         </InfoGrid>
         
-        <div style={{ textAlign: 'center' }}>
-          <DownloadButton href={result.imageUrl} download onClick={downloadImage}>
-            💾 Download Result Image
-          </DownloadButton>
-        </div>
+        {hasImageData && (
+          <div style={{ textAlign: 'center' }}>
+            <DownloadButton href={result.imageUrl} download onClick={downloadImage}>
+              💾 Download Result Image
+            </DownloadButton>
+          </div>
+        )}
         
-        {result.stepByStep && result.numericData && result.prediction && (
+        {(hasJsonData || (result.stepByStep && result.numericData && result.prediction)) && (
           <DataSection>
             <DataTitle>📈 Raw Data Analysis</DataTitle>
             <p style={{ margin: '10px 0', color: '#666', fontSize: '0.9rem' }}>
-              View the numerical OHLC (Open, High, Low, Close) data extracted from your image 
+              View the numerical OHLC (Open, High, Low, Close) data {hasJsonData ? 'generated for testing' : 'extracted from your image'} 
               and the AI model's predictions.
             </p>
+            
+            {result.aiMessage && (
+              <div style={{ 
+                background: '#d1ecf1', 
+                padding: '10px', 
+                borderRadius: '5px', 
+                margin: '10px 0',
+                color: '#0c5460',
+                fontSize: '0.9rem'
+              }}>
+                <strong>AI Message:</strong> {result.aiMessage}
+              </div>
+            )}
             
             <ToggleButton onClick={() => setShowRawData(!showRawData)}>
               {showRawData ? 'Hide' : 'Show'} Raw Data
@@ -198,19 +260,19 @@ const PredictionResult = ({ result }) => {
               <div>
                 <div style={{ marginTop: '15px' }}>
                   <DataTitle style={{ fontSize: '1rem' }}>
-                    📥 Input Data ({result.numericData.length} candles)
+                    📥 Input Data ({(result.numericData || result.originalData)?.length || 0} candles)
                   </DataTitle>
                   <DataPreview>
-                    {formatCandleData(result.numericData)}
+                    {formatCandleData(result.numericData || result.originalData || [])}
                   </DataPreview>
                 </div>
                 
                 <div style={{ marginTop: '15px' }}>
                   <DataTitle style={{ fontSize: '1rem' }}>
-                    🔮 Predicted Data ({result.prediction.length} candles)
+                    🔮 Predicted Data ({(result.prediction || result.predictions)?.length || 0} candles)
                   </DataTitle>
                   <DataPreview>
-                    {formatCandleData(result.prediction)}
+                    {formatCandleData(result.prediction || result.predictions || [])}
                   </DataPreview>
                 </div>
               </div>

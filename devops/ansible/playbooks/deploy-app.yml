@@ -1,0 +1,66 @@
+---
+# Ansible Playbook - Deploy Application to AppServer VM
+
+- name: Deploy Application to AppServer
+  hosts: appserver
+  become: yes
+  tasks:
+
+    - name: Ensure Docker is running
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Copy docker-compose.yml to VM
+      copy:
+        src: /vagrant/docker-compose.yml
+        dest: /home/vagrant/docker-compose.yml
+        owner: vagrant
+        group: vagrant
+        mode: '0644'
+
+    - name: Copy application files
+      synchronize:
+        src: /vagrant/
+        dest: /home/vagrant/app/
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=node_modules"
+          - "--exclude=__pycache__"
+          - "--exclude=.vagrant"
+
+    - name: Pull Docker images
+      command: docker-compose pull
+      args:
+        chdir: /home/vagrant/app/
+      ignore_errors: yes
+
+    - name: Build Docker images
+      command: docker-compose build
+      args:
+        chdir: /home/vagrant/app/
+
+    - name: Start Docker containers
+      command: docker-compose up -d
+      args:
+        chdir: /home/vagrant/app/
+
+    - name: Wait for services to be healthy
+      wait_for:
+        host: localhost
+        port: "{{ item }}"
+        delay: 10
+        timeout: 300
+      loop:
+        - 3000  # Frontend
+        - 8000  # Backend
+        - 8001  # AI Service
+
+    - name: Show running containers
+      command: docker ps
+      register: docker_containers
+
+    - name: Display container status
+      debug:
+        var: docker_containers.stdout_lines

@@ -1,0 +1,53 @@
+# Minimal Vagrantfile - Just boot VMs, no provisioning
+Vagrant.configure("2") do |config|
+  
+  config.ssh.insert_key = false
+  config.ssh.forward_agent = true
+  config.vm.boot_timeout = 600
+  
+  # Jenkins VM - Minimal
+  config.vm.define "jenkins" do |jenkins|
+    jenkins.vm.box = "ubuntu/focal64"
+    jenkins.vm.hostname = "jenkins-vm"
+    jenkins.vm.network "private_network", ip: "192.168.33.10"
+    jenkins.vm.network "forwarded_port", guest: 8080, host: 8080
+    
+    jenkins.vm.provider "virtualbox" do |vb|
+      vb.name = "candlestick-jenkins"
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.gui = true  # Show VM window
+    end
+    
+    # NO PROVISIONING - just boot
+  end
+
+  # AppServer VM - Minimal
+  config.vm.define "appserver" do |app|
+    app.vm.box = "ubuntu/focal64"
+    app.vm.hostname = "appserver-vm"
+    app.vm.network "private_network", ip: "192.168.33.11"
+    app.vm.network "forwarded_port", guest: 3000, host: 3000
+    app.vm.network "forwarded_port", guest: 8000, host: 8000
+    
+    app.vm.provider "virtualbox" do |vb|
+      vb.name = "candlestick-appserver"
+      vb.memory = "4096"
+      vb.cpus = 4
+    end
+  end
+
+  # Monitor VM - Minimal
+  config.vm.define "monitor" do |mon|
+    mon.vm.box = "ubuntu/focal64"
+    mon.vm.hostname = "monitor-vm"
+    mon.vm.network "private_network", ip: "192.168.33.12"
+    mon.vm.network "forwarded_port", guest: 80, host: 8888
+    
+    mon.vm.provider "virtualbox" do |vb|
+      vb.name = "candlestick-monitor"
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+  end
+end

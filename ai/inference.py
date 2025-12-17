@@ -19,7 +19,7 @@ class ModelInference:
         self.model = None
         self.model_config = {
             'input_size': 4,
-            'hidden_size': 64,
+            'hidden_size': 128,
             'num_layers': 2,
             'output_size': 4,
             'sequence_length': 50,

@@ -12,7 +12,7 @@ class CandlestickLSTM(nn.Module):
     - Fully connected layers for final prediction
     """
     
-    def __init__(self, input_size=4, hidden_size=64, num_layers=2, output_size=4, sequence_length=50, prediction_length=25):
+    def __init__(self, input_size=4, hidden_size=128, num_layers=2, output_size=4, sequence_length=50, prediction_length=25):
         super(CandlestickLSTM, self).__init__()
         
         self.input_size = input_size

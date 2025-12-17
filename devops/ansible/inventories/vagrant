@@ -1,0 +1,14 @@
+# Ansible Inventory - Vagrant 3-VM Environment
+
+[jenkins]
+192.168.33.10 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/jenkins/virtualbox/private_key
+
+[appserver]
+192.168.33.11 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/appserver/virtualbox/private_key
+
+[monitor]
+192.168.33.12 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/monitor/virtualbox/private_key
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'

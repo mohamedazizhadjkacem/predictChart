@@ -3,6 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 class CandlestickLSTM(nn.Module):
+    
     """
     LSTM Sequence-to-Sequence model for candlestick prediction
     
